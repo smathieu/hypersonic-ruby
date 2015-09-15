@@ -3,8 +3,10 @@ module Hypersonic
     class Metric
       attr_reader :name
 
-      def initialize(name, &block)
+      def initialize(name, source: nil, duration: nil, &block)
         @name = name
+        @duration = duration
+        @source = source
         @submetrics = []
         yield self
       end
@@ -44,16 +46,20 @@ module Hypersonic
       end
 
       def save
-        conn = Faraday.new(:url => hypersonic_url)
-        conn.post do |req|
+        config = Hypersonic::Ruby.config
+        conn = Faraday.new(:url => config.base_url)
+        res = conn.post do |req|
           req.url '/api/v1/metrics'
           req.headers['Content-Type'] = 'application/json'
-          req.body = render_json.to_json
+          req.headers['X-Hypersonic-Project-Key'] = config.project_secret
+          req.body = JSON.dump(render_json)
         end
-      end
 
-      def hypersonic_url
-        "http://hypersonic.dev"
+        if res.status != 201
+          puts "Failed Request"
+          puts res.body
+        end
+        # TODO handle incorrect error code
       end
     end
   end

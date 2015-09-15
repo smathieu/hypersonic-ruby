@@ -3,6 +3,9 @@ require 'spec_helper'
 module Hypersonic
   module Ruby
     describe "Integration" do
+      before do
+        allow(Ruby.config).to receive(:project_secret).and_return("abc")
+      end
       let(:api_controller_submetric) do
         [
           {
