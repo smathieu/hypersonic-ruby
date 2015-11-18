@@ -56,19 +56,22 @@ module Hypersonic
 
       def save
         config = Hypersonic::Ruby.config
-        conn = Faraday.new(:url => config.base_url)
-        res = conn.post do |req|
-          req.url '/api/v1/metrics'
-          req.headers['Content-Type'] = 'application/json'
-          req.headers['X-Hypersonic-Project-Key'] = config.project_secret
-          req.body = JSON.dump(render_json)
-        end
+        begin
+          conn = Faraday.new(:url => config.base_url)
+          res = conn.post do |req|
+            req.url '/api/v1/metrics'
+            req.headers['Content-Type'] = 'application/json'
+            req.headers['X-Hypersonic-Project-Key'] = config.project_secret
+            req.body = JSON.dump(render_json)
+          end
 
-        if res.status != 201
-          $stderr.puts "Failed Request"
-          $stderr.puts res.body
+          if res.status != 201
+            $stderr.puts "Failed Request"
+            $stderr.puts res.body
+          end
+        rescue Faraday::Error => e
+          $stderr.puts "Failed Request #{e}"
         end
-        # TODO handle incorrect error code
       end
     end
   end
