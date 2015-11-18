@@ -1,7 +1,7 @@
 module Hypersonic
   module Ruby
     class Metric
-      attr_reader :name
+      attr_reader :name, :submetrics
 
       def initialize(name, source: nil, duration: nil, &block)
         @name = name
@@ -25,7 +25,16 @@ module Hypersonic
         end
       end
 
+      def valid?
+        !!(@duration && @source && @name)
+      end
+
+      def inspect
+        "Hypersonic::Ruby::Metric #{@name} / #{@source} - #{@duration}s"
+      end
+
       def as_json
+        raise "Invalid metric '#{inspect}'" unless valid?
         json = {
           name: name,
           duration: {
@@ -56,8 +65,8 @@ module Hypersonic
         end
 
         if res.status != 201
-          puts "Failed Request"
-          puts res.body
+          $stderr.puts "Failed Request"
+          $stderr.puts res.body
         end
         # TODO handle incorrect error code
       end
